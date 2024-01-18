@@ -281,7 +281,7 @@ int main(){
 									         break;	  
 								        case 4:
 									         printf("Loging out....");
-									          return;
+									          
 								        default:
 								            printf("invalid choice");	    	 
 							        }
@@ -385,32 +385,23 @@ struct book* deletebook(struct book* head, const char* deleteId) {
 
 struct book* search(const char* filename, const char* searchName) {
     struct book* head = NULL;
-    FILE* file = fopen(filename, "r+");
+    FILE* file = fopen(filename, "r");
     
+    if (file == NULL) {
+        perror("Error opening file");
+        return NULL;
+    }
 
     struct book temp;
-    while (fscanf(file, "%49s %49s %49s %49s %9s %49s %d", temp.bookname, temp.genre, temp.author, temp.publication, temp.id, temp.date,temp.aval) == 6) {
+    while (fscanf(file, "%49s %49s %49s %49s %9s %49s %d", temp.bookname, temp.genre, temp.author, temp.publication, temp.id, temp.date, &temp.aval) == 7) {
         if (strcmp(temp.bookname, searchName) == 0) {
-            struct book* newBook = (struct book*)malloc(sizeof(struct book));
-            
-
-            snprintf(newBook->bookname, sizeof(newBook->bookname), "%s", temp.bookname);
-            snprintf(newBook->genre, sizeof(newBook->genre), "%s", temp.genre);
-            snprintf(newBook->author, sizeof(newBook->author), "%s", temp.author);
-            snprintf(newBook->publication, sizeof(newBook->publication), "%s", temp.publication);
-            snprintf(newBook->id, sizeof(newBook->id), "%s", temp.id);
-            snprintf(newBook->date, sizeof(newBook->date), "%s", temp.date);
-            snprintf(newBook->aval, sizeof(newBook->id), "%d", temp.aval);
-
-            newBook->next = head;
-            head = newBook;
+            addbook(&head, &temp);
         }
     }
 
     fclose(file);
     return head;
 }
-
 void displaySttDat(const char* studentID) {
     struct student studentData;
     FILE* file = fopen("stu.dat", "r");
@@ -591,4 +582,32 @@ void save(const char* filename, struct book* head){
 }
 
 
+struct book* search(const char* filename, const char* searchName) {
+    struct book* head = NULL;
+    FILE* file = fopen(filename, "r");
 
+    if (file == NULL) {
+        perror("Error opening file");
+        return NULL;
+    }
+
+    struct book temp;
+    while (fscanf(file, "%49s %49s %49s %49s %9s %49s %d",
+                  temp.bookname, temp.genre, temp.author, temp.publication, temp.id, temp.date, &temp.aval) == 7) {
+        if (strcmp(temp.bookname, searchName) == 0) {
+            FILE* fa = fopen("books.dat", "a+");
+            if (fa == NULL) {
+                printf("Error opening file for appending.\n");
+                fclose(file);
+                return head;
+            }
+
+            head = addBook(head, fa);
+            fclose(fa);
+            break;  // Assuming you want to add the book once and then stop searching
+        }
+    }
+
+    fclose(file);
+    return head;
+}
